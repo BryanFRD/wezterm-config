@@ -28,6 +28,8 @@ config.launch_menu = {
   { label = "Command Prompt", args = { "cmd.exe" } },
 }
 
+config.ssh_domains = wezterm.default_ssh_domains()
+
 config.initial_cols = 130
 config.initial_rows = 34
 config.window_padding = { left = 14, right = 14, top = 10, bottom = 8 }
@@ -82,7 +84,7 @@ config.keys = {
   { key = "RightArrow", mods = "ALT", action = act.ActivatePaneDirection("Right") },
   { key = "UpArrow", mods = "ALT", action = act.ActivatePaneDirection("Up") },
   { key = "DownArrow", mods = "ALT", action = act.ActivatePaneDirection("Down") },
-  { key = "l", mods = "CTRL|SHIFT", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|FUZZY" }) },
+  { key = "l", mods = "CTRL|SHIFT", action = act.ShowLauncherArgs({ flags = "LAUNCH_MENU_ITEMS|DOMAINS|FUZZY" }) },
   { key = "b", mods = "CTRL|SHIFT", action = act.SpawnCommandInNewTab({ args = { "C:\\Program Files\\Git\\bin\\bash.exe", "--login", "-i" } }) },
   { key = "k", mods = "CTRL|SHIFT", action = act.ClearScrollback("ScrollbackAndViewport") },
 }
