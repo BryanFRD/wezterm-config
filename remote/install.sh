@@ -52,8 +52,56 @@ fi
 
 say "Writing $CONF/starship.toml"
 "$STARSHIP" preset catppuccin-powerline |
-  awk 'NR == 1 { print; print ""; print "scan_timeout = 200"; print "command_timeout = 1000"; next } { print }' |
+  awk '
+    NR == 1 { print; print ""; print "scan_timeout = 200"; print "command_timeout = 1000"; next }
+    $0 == "$time\\" || /fg:sapphire bg:lavender/ { next }
+    /\(fg:lavender\)/ && !/bold/ { sub(/fg:lavender/, "fg:sapphire") }
+    $0 == "[time]" { in_time = 1; next }
+    in_time && /^\[/ { in_time = 0 }
+    in_time { next }
+    $0 == "$username\\" { print; print "$hostname\\"; next }
+    $0 == "show_notifications = true" { $0 = "show_notifications = false" }
+    { print }
+    END {
+      print ""
+      print "[hostname]"
+      print "ssh_only = true"
+      print "style = \"bg:red fg:crust\""
+      print "format = \"[@$hostname]($style)\""
+    }
+  ' |
   install_file "$CONF/starship.toml"
+
+if [ "$(uname -m)" != x86_64 ]; then
+  say "No prebuilt binaries for $(uname -m), skipping WezTerm, eza and bat"
+else
+  if [ ! -x "$BIN/wezterm-mux-server" ]; then
+    if ! command -v xz >/dev/null 2>&1; then
+      say "xz is missing, skipping WezTerm (persistent sessions); install xz-utils and run this again"
+    else
+      say "Installing the WezTerm mux server in $BIN"
+      tmp="$(mktemp -d)"
+      fetch https://github.com/wezterm/wezterm/releases/download/nightly/wezterm-nightly.Debian12.tar.xz |
+        tar -xJ -C "$tmp" wezterm/usr/bin/wezterm wezterm/usr/bin/wezterm-mux-server
+      mv "$tmp"/wezterm/usr/bin/wezterm "$tmp"/wezterm/usr/bin/wezterm-mux-server "$BIN"/
+      rm -rf "$tmp"
+    fi
+  fi
+
+  if [ ! -x "$BIN/eza" ]; then
+    say "Installing eza in $BIN"
+    fetch https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz |
+      tar -xz -C "$BIN" ./eza
+  fi
+
+  if [ ! -x "$BIN/bat" ]; then
+    say "Installing bat in $BIN"
+    bat_tag="$(fetch https://api.github.com/repos/sharkdp/bat/releases/latest | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')"
+    bat_dir="bat-$bat_tag-x86_64-unknown-linux-musl"
+    fetch "https://github.com/sharkdp/bat/releases/download/$bat_tag/$bat_dir.tar.gz" |
+      tar -xz -C "$BIN" --strip-components=1 "$bat_dir/bat"
+  fi
+fi
 
 if command -v bash >/dev/null 2>&1; then
   if [ ! -f "$DATA/blesh/ble.sh" ]; then
@@ -84,8 +132,31 @@ fi
 if [[ ${BLE_VERSION-} ]]; then
   bleopt complete_auto_delay=150
   ble-face -s auto_complete fg=#6c7086
+  ble-bind -f M-delete delete-forward-cword
+  ble-bind -f M-BS delete-backward-cword
+  ble-bind -f M-DEL delete-backward-cword
 fi
 unset _blesh
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons=auto --group-directories-first'
+  alias ll='ls -l --git'
+fi
+command -v bat >/dev/null 2>&1 && alias cat='bat --paging=never --style=plain'
+__terminal_notify() {
+  local code=$STARSHIP_CMD_STATUS title="Command finished on ${HOSTNAME%%.*}"
+  [[ ${STARSHIP_START_TIME-} ]] || return 0
+  (($(starship time) - STARSHIP_START_TIME >= 45000)) || return 0
+  ((code == 0)) || title="Command failed ($code) on ${HOSTNAME%%.*}"
+  printf '\e]777;notify;%s;%s\e\\' "$title" "$(fc -ln -1 | sed 's/^[[:space:]]*//')"
+}
+__terminal_precmd() {
+  local dir=${PWD/#$HOME/\~}
+  printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?5l'
+  printf '\e]7;file://%s%s\e\\' "$HOSTNAME" "$PWD"
+  printf '\e]2;%s %s\a' "${HOSTNAME%%.*}" "${dir##*/}"
+  __terminal_notify
+}
+starship_precmd_user_func=__terminal_precmd
 command -v starship >/dev/null 2>&1 && eval "$(starship init bash)"
 BASH
 
@@ -132,6 +203,23 @@ _zas="${XDG_DATA_HOME:-$HOME/.local/share}/zsh-autosuggestions/zsh-autosuggestio
 unset _zas
 bindkey '^[[A' history-beginning-search-backward
 bindkey '^[[B' history-beginning-search-forward
+bindkey '^[[3;3~' kill-word
+if (( $+commands[eza] )); then
+  alias ls='eza --icons=auto --group-directories-first'
+  alias ll='ls -l --git'
+fi
+(( $+commands[bat] )) && alias cat='bat --paging=never --style=plain'
+__terminal_precmd() {
+  local code=$? title="Command finished on ${HOST%%.*}"
+  printf '\e[?1000l\e[?1002l\e[?1003l\e[?1006l\e[?5l'
+  printf '\e]7;file://%s%s\e\\' "$HOST" "$PWD"
+  print -Pn '\e]2;%m %1~\a'
+  (( ${+STARSHIP_START_TIME} )) || return 0
+  (( $(starship time) - STARSHIP_START_TIME >= 45000 )) || return 0
+  (( code == 0 )) || title="Command failed ($code) on ${HOST%%.*}"
+  printf '\e]777;notify;%s;%s\e\\' "$title" "$(fc -ln -1)"
+}
+precmd_functions+=(__terminal_precmd)
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 ZSH
   append_once "$HOME/.zshrc" "[ -f \"$SHELL_DIR/terminal.zsh\" ] && . \"$SHELL_DIR/terminal.zsh\""
