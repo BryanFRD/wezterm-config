@@ -73,21 +73,8 @@ say "Writing $CONF/starship.toml"
   install_file "$CONF/starship.toml"
 
 if [ "$(uname -m)" != x86_64 ]; then
-  say "No prebuilt binaries for $(uname -m), skipping WezTerm, eza and bat"
+  say "No prebuilt binaries for $(uname -m), skipping eza and bat"
 else
-  if [ ! -x "$BIN/wezterm-mux-server" ]; then
-    if ! command -v xz >/dev/null 2>&1; then
-      say "xz is missing, skipping WezTerm (persistent sessions); install xz-utils and run this again"
-    else
-      say "Installing the WezTerm mux server in $BIN"
-      tmp="$(mktemp -d)"
-      fetch https://github.com/wezterm/wezterm/releases/download/nightly/wezterm-nightly.Debian12.tar.xz |
-        tar -xJ -C "$tmp" wezterm/usr/bin/wezterm wezterm/usr/bin/wezterm-mux-server
-      mv "$tmp"/wezterm/usr/bin/wezterm "$tmp"/wezterm/usr/bin/wezterm-mux-server "$BIN"/
-      rm -rf "$tmp"
-    fi
-  fi
-
   if [ ! -x "$BIN/eza" ]; then
     say "Installing eza in $BIN"
     fetch https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-musl.tar.gz |
@@ -159,6 +146,7 @@ __terminal_precmd() {
   __terminal_notify
 }
 starship_precmd_user_func=__terminal_precmd
+printf '\e]1337;SetUserVar=HOME=%s\a' "$(printf %s "$HOME" | base64 | tr -d '\n')"
 command -v starship >/dev/null 2>&1 && eval "$(starship init bash)"
 BASH
 
@@ -222,6 +210,7 @@ __terminal_precmd() {
   printf '\e]777;notify;%s;%s\e\\' "$title" "$(fc -ln -1)"
 }
 precmd_functions+=(__terminal_precmd)
+printf '\e]1337;SetUserVar=HOME=%s\a' "$(printf %s "$HOME" | base64 | tr -d '\n')"
 command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
 ZSH
   append_once "$HOME/.zshrc" "[ -f \"$SHELL_DIR/terminal.zsh\" ] && . \"$SHELL_DIR/terminal.zsh\""

@@ -32,7 +32,6 @@ Over SSH the prompt and completion come from the server's shell, so they need in
 - bash: [ble.sh](https://github.com/akinomyoga/ble.sh), with suggestions from history as you type and a completion menu (needs `ps`, from procps);
 - zsh: [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) and menu completion;
 - [eza](https://github.com/eza-community/eza) as `ls`/`ll` and [bat](https://github.com/sharkdp/bat) as `cat`;
-- the WezTerm mux server, for sessions that survive a disconnect;
 - the shell reports its directory and sets the tab title (`host dir`), so splits open in the same directory;
 - a notification when a command over 45 s ends while WezTerm is in the background;
 - `LANG` set to `C.UTF-8` when the session has none.
@@ -44,7 +43,7 @@ scp $HOME\.config\wezterm\remote\install.sh user@vps:/tmp/terminal-install.sh
 ssh user@vps "bash /tmp/terminal-install.sh && rm /tmp/terminal-install.sh"
 ```
 
-Hosts listed in `~/.ssh/config` also appear in the launcher (`Ctrl+Shift+L`). WezTerm opens them through its mux server, so tabs and splits stay alive on the server and come back when you reconnect. WezTerm ignores `ProxyJump`, so hosts behind a jump host need `ProxyCommand ssh -W %h:%p <jump>` instead.
+Hosts listed in `~/.ssh/config` also appear in the launcher (`Ctrl+Shift+L`). WezTerm opens them as SSH tabs; the shell reports its home so new tabs start there. WezTerm ignores `ProxyJump`, so hosts behind a jump host need `ProxyCommand ssh -W %h:%p <jump>` instead.
 
 ## Shortcuts
 

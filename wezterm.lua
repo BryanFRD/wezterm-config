@@ -34,9 +34,8 @@ config.launch_menu = {
 
 config.ssh_domains = {}
 for _, domain in ipairs(wezterm.default_ssh_domains()) do
-  if domain.multiplexing == "WezTerm" then
-    domain.name = domain.name:gsub("^SSHMUX:", "")
-    domain.remote_wezterm_path = "~/.local/bin/wezterm"
+  if domain.multiplexing == "None" then
+    domain.name = domain.name:gsub("^SSH:", "")
     table.insert(config.ssh_domains, domain)
   end
 end
@@ -87,7 +86,10 @@ config.notification_handling = "SuppressFromFocusedWindow"
 config.front_end = "WebGpu"
 config.max_fps = 120
 
-local new_tab_at_home = act.SpawnCommandInNewTab({ domain = "CurrentPaneDomain", cwd = "~" })
+local new_tab_at_home = wezterm.action_callback(function(window, pane)
+  local home = pane:get_domain_name() == "local" and wezterm.home_dir or pane:get_user_vars().HOME
+  window:perform_action(act.SpawnCommandInNewTab({ domain = "CurrentPaneDomain", cwd = home }), pane)
+end)
 
 local max_panes = 4
 
