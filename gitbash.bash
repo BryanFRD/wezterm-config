@@ -28,5 +28,7 @@ if [[ ${BLE_VERSION-} ]]; then
   ble-bind -f M-delete delete-forward-cword
   ble-bind -f M-BS delete-backward-cword
   ble-bind -f M-DEL delete-backward-cword
+  ble-bind -f RET 'accept-line syntax'
+  ble-bind -f C-m 'accept-line syntax'
   ble-attach
 fi
