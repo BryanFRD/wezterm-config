@@ -15,6 +15,12 @@ git clone https://github.com/BryanFRD/wezterm-config "$HOME\.config\wezterm"
 winget install wezfurlong.wezterm Starship.Starship
 ```
 
+WezTerm's built-in Nerd Font symbols miss recent icons (eza's YAML icon, for one), so drop the current symbols font in `fonts/`, which `wezterm.lua` loads first:
+
+```bash
+mkdir -p ~/.config/wezterm/fonts && curl -fsSL https://github.com/ryanoasis/nerd-fonts/releases/latest/download/NerdFontsSymbolsOnly.tar.xz | tar -xJ -C ~/.config/wezterm/fonts SymbolsNerdFontMono-Regular.ttf
+```
+
 Then, in Git Bash, install ble.sh and load `gitbash.bash` from `~/.bashrc`:
 
 ```bash

@@ -15,6 +15,8 @@ config.font = wezterm.font_with_fallback({
   "Cascadia Code",
   "Symbols Nerd Font Mono",
 })
+config.font_dirs = { wezterm.config_dir .. "/fonts" }
+config.warn_about_missing_glyphs = false
 config.font_size = 11
 config.line_height = 1.1
 config.harfbuzz_features = { "calt=1", "clig=1", "liga=1" }
