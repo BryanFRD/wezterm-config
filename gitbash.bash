@@ -25,9 +25,9 @@ command -v starship >/dev/null 2>&1 && eval "$(starship init bash)"
 if [[ ${BLE_VERSION-} ]]; then
   bleopt complete_auto_delay=150
   ble-face -s auto_complete fg=#6c7086
-  ble-bind -f M-delete delete-forward-cword
-  ble-bind -f M-BS delete-backward-cword
-  ble-bind -f M-DEL delete-backward-cword
+  ble-bind -f M-delete delete-forward-fword
+  ble-bind -f M-BS delete-backward-fword
+  ble-bind -f M-DEL delete-backward-fword
   ble-bind -f RET 'accept-line syntax'
   ble-bind -f C-m 'accept-line syntax'
   ble-attach
