@@ -165,4 +165,13 @@ wezterm.on("new-tab-button-click", function(window, pane, button)
   end
 end)
 
+config.hyperlink_rules = {
+  { regex = "\\((\\w+://[^\\s()]+)\\)", format = "$1", highlight = 1 },
+  { regex = "\\[(\\w+://[^\\s\\[\\]]+)\\]", format = "$1", highlight = 1 },
+  { regex = "\\{(\\w+://[^\\s{}]+)\\}", format = "$1", highlight = 1 },
+  { regex = "<(\\w+://[^\\s<>]+)>", format = "$1", highlight = 1 },
+  { regex = "\\b\\w+://\\S+[/a-zA-Z0-9_=#-]", format = "$0" },
+  { regex = "\\b\\w+@[\\w-]+(\\.[\\w-]+)+\\b", format = "mailto:$0" },
+}
+
 return config
